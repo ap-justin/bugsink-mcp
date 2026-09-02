@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+fly.toml
+__pycache__/
+*.pyc
+*.db
+*.db-wal
+*.db-shm
+.venv/
+venv/

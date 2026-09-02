@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc
+*.db
+*.db-wal
+*.db-shm
+.venv/
+venv/
+.ruff_cache/
