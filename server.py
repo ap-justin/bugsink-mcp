@@ -79,9 +79,8 @@ class Config:
 
     @classmethod
     def from_env(cls) -> Config:
-        # both hosts are deployment-specific, so neither gets a default: a wrong PUBLIC_HOST
-        # makes the transport-security check reject every request, and a wrong BUGSINK_URL
-        # points the token at someone else's instance
+        # no default for either host: a wrong PUBLIC_HOST has the transport-security check
+        # reject every request, and a wrong BUGSINK_URL sends the token to someone else's instance
         host = _require("PUBLIC_HOST")
         return cls(
             bugsink_url=_require("BUGSINK_URL").rstrip("/"),
@@ -100,7 +99,7 @@ class Config:
 # made true: every key the shaping code below reads is required here, and a body
 # that does not carry them becomes a ToolError naming the field rather than a
 # KeyError the model cannot read. Types stay wide on purpose — a field arriving as
-# a number instead of a string worked before and should keep working.
+# a number instead of a string is still accepted.
 
 
 class RawProject(BaseModel):
@@ -273,7 +272,7 @@ _TOOL_FUNCTIONS: list[Callable[..., Any]] = []
 
 
 def tool(fn: Callable[..., Any]) -> Callable[..., Any]:
-    """Collect a tool for registration. build_app is the one place that binds them."""
+    """Collect a tool for registration. build_server is the one place that binds them."""
     _TOOL_FUNCTIONS.append(fn)
     return fn
 
@@ -661,8 +660,8 @@ def build_server(config: Config) -> MCPServer:
     for fn in _TOOL_FUNCTIONS:
         mcp.tool()(fn)
 
-    # Custom routes are mounted unauthenticated, which is exactly what /health and the
-    # login pair need — /mcp itself is behind the SDK's RequireAuthMiddleware.
+    # custom routes are mounted unauthenticated, which is exactly what /health and the
+    # login pair need — /mcp itself is behind the SDK's RequireAuthMiddleware
 
     @mcp.custom_route("/health", methods=["GET"])
     async def health(_request: Request) -> Response:

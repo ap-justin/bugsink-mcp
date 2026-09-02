@@ -27,9 +27,9 @@ Triage:
 | `mute_issue` / `unmute_issue` | Indefinitely or for a fixed span |
 | `comment_on_issue` | Leave a comment visible in the Bugsink UI |
 
-Issues are addressable by UUID or by their short friendly id. Stacktraces are capped at 40 KB.
+Issues are addressable by UUID or by their short friendly id.
 
-Deleting issues and creating or editing projects, teams and releases are deliberately absent. Every event payload is text an attacker chose, since any error in a monitored app becomes a string the model reads. The blast radius of a prompt injection is whatever these tools can write, so the write surface stays small.
+Every event payload is text an attacker chose: any error in a monitored app becomes a string the model reads, so the write surface stays as small as it is.
 
 ## Deploy your own
 
@@ -51,7 +51,7 @@ You need a Bugsink instance reachable over HTTPS, a Bugsink API token (Bugsink U
    ./scripts/push-env.sh --stage
    ```
 
-   `MCP_PASSWORD` must be at least 20 characters. It is the only thing between the public internet and your error data, so generate it. `push-env.sh` reads `.env` and pipes the values into `fly secrets import`, keeping them out of your shell history.
+   `MCP_PASSWORD` must be at least 20 characters or the server refuses to start.
 
 4. Deploy:
 
@@ -60,38 +60,23 @@ You need a Bugsink instance reachable over HTTPS, a Bugsink API token (Bugsink U
    curl https://<PUBLIC_HOST>/health
    ```
 
-The machine suspends when idle and wakes on the first request.
-
 ## Connect from Claude Code
 
 ```sh
 claude mcp add --transport http bugsink https://<PUBLIC_HOST>/mcp
 ```
 
-Then in a session run `/mcp`, pick **bugsink** and authenticate. A browser opens the server's login page; enter `MCP_PASSWORD` once. Tokens refresh on their own for 30 days of use.
+Adding the server does not authenticate it. Run `/mcp` in a session and authenticate from there; the password is `MCP_PASSWORD`.
 
-To share the connection with everyone working in a repo, add it at project scope instead. That writes a `.mcp.json` you can commit:
+To share the connection with everyone working in a repo, add it at project scope instead. That writes a `.mcp.json` you can commit; committing it shares the URL, not access, so each person still needs the password.
 
 ```sh
 claude mcp add --transport http --scope project bugsink https://<PUBLIC_HOST>/mcp
 ```
 
-```json
-{
-  "mcpServers": {
-    "bugsink": {
-      "type": "http",
-      "url": "https://<PUBLIC_HOST>/mcp"
-    }
-  }
-}
-```
-
-Each person still authenticates with the password the first time.
-
 ## Connect from claude.ai
 
-Settings, **Connectors**, **Add custom connector**, paste `https://<PUBLIC_HOST>/mcp`. The dialog takes a URL and nothing else, which is why this server issues its own OAuth tokens instead of accepting a static header.
+Add `https://<PUBLIC_HOST>/mcp` as a custom connector.
 
 ## Access model
 
@@ -100,7 +85,7 @@ One deploy has one principal. Every token the server issues belongs to the same 
 - **Revoke everyone.** Open `https://<PUBLIC_HOST>/logout` and enter the password. Every issued token dies. Connectors reconnect by logging in again.
 - **Rotate the password.** Change `MCP_PASSWORD` in `.env`, run `./scripts/push-env.sh`, then visit `/logout` with the new password. Changing the password alone does not sign out existing connectors.
 - **Cut off the server.** Delete the API token in Bugsink. Every tool call fails immediately.
-- **Brute force.** Login attempts are rate limited per source address and globally, with exponential lockout up to 15 minutes. `/login` and `/logout` share one counter.
+- **Locked out.** A 429 on the login or logout page means too many wrong guesses, from you or from anyone else. It clears on its own within 15 minutes.
 
 ## Run locally
 
@@ -134,11 +119,10 @@ claude mcp add --transport http bugsink-local http://127.0.0.1:8000/mcp
 
 ## How it works
 
-- `server.py` builds the MCP server over the official `mcp` SDK and exposes the tools as thin, typed wrappers over Bugsink's canonical REST API (`/api/canonical/0`). Streamable HTTP, stateless.
-- `oauth.py` is the OAuth 2.1 authorization server: dynamic client registration, PKCE, refresh, revocation, all persisted to SQLite. The one human step is the password page.
-- `Dockerfile` runs `uvicorn` as an unprivileged user; the image is read-only and only the volume is written to.
+- `server.py` is the tools and the transport.
+- `oauth.py` is the authorization server and the login page.
 
-Tested against Bugsink 2.5 and `mcp` 2.1.
+Each module's docstring carries the design. Tested against Bugsink 2.5.
 
 ## Development
 

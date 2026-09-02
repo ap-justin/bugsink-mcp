@@ -44,8 +44,8 @@ from mcp.shared.auth import OAuthClientInformationFull, OAuthToken
 
 logger = logging.getLogger(__name__)
 
-ACCESS_TOKEN_TTL = 3600  # 1 hour
-REFRESH_TOKEN_TTL = 60 * 60 * 24 * 30  # 30 days
+ACCESS_TOKEN_TTL = 3600
+REFRESH_TOKEN_TTL = 60 * 60 * 24 * 30
 AUTH_CODE_TTL = 300
 PENDING_TTL = 600  # a login left open for 10 minutes is abandoned
 CLIENT_TTL = 60 * 60 * 24 * 30  # a registration with no live token, unused this long, is gone
@@ -92,8 +92,8 @@ def _columns(db: sqlite3.Connection, table: str) -> set[str]:
 def _migrate(db: sqlite3.Connection) -> None:
     """Bring a database file — fresh or already deployed — up to SCHEMA_VERSION.
 
-    The deployed file predates user_version, so version 0 means either an empty file
-    or the original four tables; every step below has to be safe for both.
+    A file written before user_version was set reads as version 0, the same as an empty
+    file, so every step below has to be safe for both.
     """
     version: int = db.execute("PRAGMA user_version").fetchone()[0]
     if version >= SCHEMA_VERSION:
@@ -132,9 +132,8 @@ class Store:
     """SQLite-backed OAuth state. Tokens are stored hashed, never in the clear.
 
     Every statement runs on one connection under one lock: check_same_thread=False plus
-    mutual exclusion, rather than thread affinity. busy_timeout is there for an external
-    writer, since `fly ssh console` + sqlite3 is the documented way to sign every
-    connector out.
+    mutual exclusion, rather than thread affinity. busy_timeout covers an external
+    writer, such as sqlite3 over `fly ssh console`.
     """
 
     def __init__(self, path: str) -> None:
@@ -538,8 +537,8 @@ _STYLE = """<style>
   .error { color: #c0392b; opacity: 1; }
 </style>"""
 
-# Template rather than str.format: the placeholders sit in a document full of CSS braces,
-# and every value below is user- or client-supplied, so the render helpers escape them all.
+# the placeholders sit in a document full of CSS braces, which str.format would choke on;
+# every value below is user- or client-supplied, so the render helpers escape them all
 LOGIN_PAGE = Template(f"""<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">

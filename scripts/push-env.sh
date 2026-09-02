@@ -30,8 +30,8 @@ APP=$(awk -F'"' '/^app *=/{print $2}' "$DIR/fly.toml")
 
 [ -f "$ENVFILE" ] || { echo "no $ENVFILE — copy .env.example to .env first" >&2; exit 1; }
 
-# Keep KEY=VALUE lines that have a non-empty value; strip surrounding quotes.
-# LOCAL_* is dropped here: the server reads none of it.
+# keep KEY=VALUE lines that have a non-empty value; strip surrounding quotes.
+# LOCAL_* is dropped here: the server reads none of it
 PAIRS=$(sed -e 's/\r$//' "$ENVFILE" \
   | grep -E '^[A-Za-z_][A-Za-z0-9_]*=' \
   | grep -v '^LOCAL_' \

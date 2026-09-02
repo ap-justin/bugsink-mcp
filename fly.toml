@@ -1,4 +1,4 @@
-# Edit the three deployment-specific values before `fly deploy`:
+# edit the three deployment-specific values before `fly deploy`:
 #   app          the Fly app name you created with `fly apps create`
 #   BUGSINK_URL  the public URL of your Bugsink instance
 #   PUBLIC_HOST  the hostname this server is reached at, normally <app>.fly.dev
@@ -9,11 +9,11 @@ primary_region = "sin"
 [build]
 
 [env]
-  # Use Bugsink's public URL even when it also runs on Fly, not <app>.internal: Bugsink
+  # use Bugsink's public URL even when it also runs on Fly, not <app>.internal: Bugsink
   # auto-suspends and only a request through the Fly proxy wakes it. It also deduces
   # ALLOWED_HOSTS from BASE_URL, so this Host header is the one it accepts.
   BUGSINK_URL = "https://bugsink.example.com"
-  # DNS-rebinding protection rejects any Host header not listed here.
+  # DNS-rebinding protection rejects any Host header not listed here
   PUBLIC_HOST = "bugsink-mcp.fly.dev"
 
 [http_service]
@@ -39,12 +39,12 @@ primary_region = "sin"
       X-Forwarded-Proto = "https"
 
 # OAuth clients and tokens outlive a deploy only if they are on a volume; without
-# one, every release would silently disconnect the connector.
+# one, every release would silently disconnect the connector
 [mounts]
   source = "mcp_data"
   destination = "/data"
 
-# Single volume, so a single machine.
+# single volume, so a single machine
 [[vm]]
   size = "shared-cpu-1x"
   memory = "256mb"
