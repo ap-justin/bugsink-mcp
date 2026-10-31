@@ -1,9 +1,8 @@
-# these three values point at the maintainer's live deployment; change all of them
-# before your own `fly deploy`:
+# edit the three deployment-specific values before `fly deploy`:
 #   app          the Fly app name you created with `fly apps create`
 #   BUGSINK_URL  the public URL of your Bugsink instance
 #   PUBLIC_HOST  the hostname this server is reached at, normally <app>.fly.dev
-app = "bugsink-mcp-justin"
+app = "bugsink-mcp"
 # pick the region closest to your Bugsink instance; the volume below must live in it too
 primary_region = "sin"
 
@@ -13,9 +12,9 @@ primary_region = "sin"
   # use Bugsink's public URL even when it also runs on Fly, not <app>.internal: Bugsink
   # auto-suspends and only a request through the Fly proxy wakes it. It also deduces
   # ALLOWED_HOSTS from BASE_URL, so this Host header is the one it accepts.
-  BUGSINK_URL = "https://bugsink-justin.fly.dev"
+  BUGSINK_URL = "https://bugsink.example.com"
   # DNS-rebinding protection rejects any Host header not listed here
-  PUBLIC_HOST = "bugsink-mcp-justin.fly.dev"
+  PUBLIC_HOST = "bugsink-mcp.fly.dev"
 
 [http_service]
   internal_port = 8000

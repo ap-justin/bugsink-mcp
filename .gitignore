@@ -12,3 +12,6 @@ venv/
 
 # seats' per-machine repo memory
 .claude/agent-memory-local/
+
+# this deployment's own fly config, deployed with `fly deploy -c fly.local.toml`
+fly.local.toml
