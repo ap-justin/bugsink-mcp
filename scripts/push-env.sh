@@ -5,6 +5,7 @@
 #   ./scripts/push-env.sh -n         # show what would be pushed, change nothing
 #   ./scripts/push-env.sh --stage    # store them, apply on the next deploy
 #   ./scripts/push-env.sh -f other.env
+#   ./scripts/push-env.sh -c fly.local.toml   # target the app named in that config
 #
 # Blank values and comments are skipped, so an unfilled .env pushes nothing.
 # Names beginning LOCAL_ stay on this machine and are never sent.
@@ -13,19 +14,21 @@ set -eu
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 
-DRY=0; STAGE=""; DIR="$ROOT"; ENVFILE=""
+DRY=0; STAGE=""; DIR="$ROOT"; ENVFILE=""; CONFIG="$ROOT/fly.toml"
 while [ $# -gt 0 ]; do
   case $1 in
     -n|--dry-run) DRY=1; shift ;;
     --stage) STAGE="--stage"; shift ;;
     -f) ENVFILE=${2:?-f needs a path}; shift 2 ;;
-    -h|--help) sed -n '2,10p' "$0"; exit 0 ;;
+    -c) CONFIG=${2:?-c needs a path}; shift 2 ;;
+    -h|--help) sed -n '2,12p' "$0"; exit 0 ;;
     *) echo "unknown option: $1" >&2; exit 2 ;;
   esac
 done
 
-[ -f "$DIR/fly.toml" ] || { echo "no $DIR/fly.toml" >&2; exit 1; }
-APP=$(awk -F'"' '/^app *=/{print $2}' "$DIR/fly.toml")
+[ -f "$CONFIG" ] || { echo "no $CONFIG" >&2; exit 1; }
+APP=$(awk -F'"' '/^app *=/{print $2}' "$CONFIG")
+[ -n "$APP" ] || { echo "no app = \"...\" line in $CONFIG" >&2; exit 1; }
 [ -n "$ENVFILE" ] || ENVFILE="$DIR/.env"
 
 [ -f "$ENVFILE" ] || { echo "no $ENVFILE — copy .env.example to .env first" >&2; exit 1; }

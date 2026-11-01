@@ -35,7 +35,7 @@ Every event payload is text an attacker chose: any error in a monitored app beco
 
 You need a Bugsink instance reachable over HTTPS, a Bugsink API token (Bugsink UI, **Tokens** menu), and [`flyctl`](https://fly.io/docs/flyctl/install/).
 
-1. Clone this repo and edit the three values at the top of `fly.toml`: `app`, `BUGSINK_URL`, `PUBLIC_HOST`. `PUBLIC_HOST` is normally `<app>.fly.dev`. Pick a `primary_region` near your Bugsink instance.
+1. Clone this repo and edit the three values at the top of `fly.toml`: `app`, `BUGSINK_URL`, `PUBLIC_HOST`. `PUBLIC_HOST` is normally `<app>.fly.dev`. Pick a `primary_region` near your Bugsink instance. To keep your values out of git, copy `fly.toml` to `fly.local.toml` (gitignored) and pass `-c fly.local.toml` to `fly deploy` and `scripts/push-env.sh`.
 
 2. Create the app and the volume that keeps OAuth grants alive across deploys:
 
